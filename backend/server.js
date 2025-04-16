@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import authRoutes from "../backend/routes/auth.routes.js";
+import connectToMongoDB from "./db/connectToMongoDB.js";
 const app = express();
 dotenv.config();
 
@@ -13,5 +14,6 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
+  connectToMongoDB(); // mongo DB connection fn
   console.log(`Server running on port: ${PORT}`);
 });
