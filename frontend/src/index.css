@@ -12,7 +12,7 @@ body {
 }
 
 /* dark mode looking scrollbar */
-/* ::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 8px;
 }
 
@@ -27,7 +27,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #242424;
-} */
+}
 
 /* SHAKE ANIMATION ON HORIZONTAL DIRECTION */
 /* .shake {
