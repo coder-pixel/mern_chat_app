@@ -1,15 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
-import authRoutes from "../backend/routes/auth.routes.js";
+import cookieParser from "cookie-parser";
 import connectToMongoDB from "./db/connectToMongoDB.js";
+
+import authRoutes from "../backend/routes/auth.routes.js";
+import messageRoutes from "../backend/routes/message.routes.js";
+import userRoutes from "../backend/routes/user.routes.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5500;
 
-app.use(express.json()); // to parse the incoming requests with json payloads (from req.body)
+// to parse the incoming requests with json payloads (from req.body)
+app.use(express.json());
+// to parse the cookies
+app.use(cookieParser()); // cookie-parser is a middleware that parses cookies from the HTTP request header and makes them easily accessible via req.cookies in Express apps.
+
+// routes
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
 app.listen(PORT, () => {
   connectToMongoDB(); // mongo DB connection fn
