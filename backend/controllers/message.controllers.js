@@ -50,7 +50,13 @@ export const getMessages = async (req, res) => {
 
     const conversation = await Conversation?.findOne({
       participants: { $all: [senderId, userToChatId] }, // find conversation where both sender and receiver are participants
-    })?.populate("messages"); // NOT REFERENCE BUT ACTUAL MESSAGES
+    })?.populate({
+      path: "messages",
+      populate: [
+        { path: "senderId", select: "fullName username gender profilePic" },
+        { path: "receiverId", select: "fullName username gender profilePic" },
+      ],
+    }); // NOT REFERENCE BUT ACTUAL MESSAGES
 
     if (!conversation) return res?.status(200)?.json([]);
 
