@@ -27,9 +27,7 @@ const Login = () => {
         <form>
           <div className="form-control">
             <label className="label p-2">
-              <span className="ml-2 text-sm text-base label-text">
-                Username
-              </span>
+              <span className="ml-2 text-sm label-text">Username</span>
             </label>
 
             <input
