@@ -7,8 +7,6 @@ export const useAuth = ({
   initialIsDirty,
   type = "signup",
 }) => {
-  console.log({ initialIsDirty });
-
   const { setAuthUser } = useAuthContext();
 
   const [formFields, setFormFields] = useState(initialFormFields);
@@ -176,6 +174,7 @@ export const useAuth = ({
       setAuthUser(data);
     } catch (err) {
       console.error("Error in form submission:", err);
+      errorHandler(err);
     } finally {
       _manageLoading("submitLoading", false);
     }

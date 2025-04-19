@@ -20,16 +20,9 @@ const initialIsDirty = {
 };
 
 const Signup = () => {
-  const {
-    formFields,
-    isDirty,
-    errors,
-    loading,
-    onFormFieldsChange,
-    onSubmitHandler,
-  } = useAuth({ initialFormFields, initialIsDirty, type: "signup" });
+  const { formFields, errors, loading, onFormFieldsChange, onSubmitHandler } =
+    useAuth({ initialFormFields, initialIsDirty, type: "signup" });
 
-  console.log({ formFields, isDirty, errors });
   return (
     <div className="flex flex-col items-center justify-center min-w-96 mx-auto">
       <div className="w-full p-6 rounded-lg shadow-md bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0">
