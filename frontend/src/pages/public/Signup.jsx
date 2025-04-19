@@ -1,7 +1,35 @@
 import React from "react";
 import GenderCheckbox from "../../components/GenderCheckbox";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import ErrorMessage from "../../components/ErrorMessage";
+
+const initialFormFields = {
+  fullName: "",
+  username: "",
+  password: "",
+  confirmPassword: "",
+  gender: "",
+};
+const initialIsDirty = {
+  fullName: false,
+  username: false,
+  password: false,
+  confirmPassword: false,
+  gender: false,
+};
 
 const Signup = () => {
+  const {
+    formFields,
+    isDirty,
+    errors,
+    loading,
+    onFormFieldsChange,
+    onSubmitHandler,
+  } = useAuth({ initialFormFields, initialIsDirty, type: "signup" });
+
+  console.log({ formFields, isDirty, errors });
   return (
     <div className="flex flex-col items-center justify-center min-w-96 mx-auto">
       <div className="w-full p-6 rounded-lg shadow-md bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0">
@@ -10,22 +38,21 @@ const Signup = () => {
         </h1>
 
         <form>
-          <div>
+          <div className="form-control">
             <label className="label p-2">
               <span className="text-base label-text">Full Name</span>
             </label>
             <input
               type="text"
               placeholder="John Doe"
-              className="w-full input input-bordered  h-10"
-              //   value={inputs.fullName}
-              //   onChange={(e) =>
-              //     setInputs({ ...inputs, fullName: e.target.value })
-              //   }
+              className="w-full input input-bordered h-10"
+              value={formFields?.fullName}
+              onChange={(e) => onFormFieldsChange("fullName", e.target.value)}
             />
+            <ErrorMessage errors={errors} errorKey="fullName" />
           </div>
 
-          <div>
+          <div className="form-control">
             <label className="label p-2">
               <span className="text-base label-text">Username</span>
             </label>
@@ -33,63 +60,65 @@ const Signup = () => {
               type="text"
               placeholder="johndoe"
               className="w-full input input-bordered h-10"
-              //   value={inputs.username}
-              //   onChange={(e) =>
-              //     setInputs({ ...inputs, username: e.target.value })
-              //   }
+              value={formFields?.username}
+              onChange={(e) => onFormFieldsChange("username", e.target.value)}
             />
+            <ErrorMessage errors={errors} errorKey="username" />
           </div>
 
-          <div>
-            <label className="label  p-2">
+          <div className="form-control">
+            <label className="label p-2">
               <span className="text-base label-text">Password</span>
             </label>
             <input
               type="password"
               placeholder="Enter Password"
               className="w-full input input-bordered h-10"
-              //   value={inputs.password}
-              //   onChange={(e) =>
-              //     setInputs({ ...inputs, password: e.target.value })
-              //   }
+              value={formFields?.password}
+              onChange={(e) => onFormFieldsChange("password", e.target.value)}
             />
+            <ErrorMessage errors={errors} errorKey="password" />
           </div>
 
-          <div>
-            <label className="label  p-2 ">
+          <div className="form-control">
+            <label className="label p-2">
               <span className="text-base label-text">Confirm Password</span>
             </label>
             <input
               type="password"
               placeholder="Confirm Password"
               className="w-full input input-bordered h-10"
-              //   value={inputs.confirmPassword}
-              //   onChange={(e) =>
-              //     setInputs({ ...inputs, confirmPassword: e.target.value })
-              //   }
+              value={formFields?.confirmPassword}
+              onChange={(e) =>
+                onFormFieldsChange("confirmPassword", e.target.value)
+              }
             />
+            <ErrorMessage errors={errors} errorKey="confirmPassword" />
           </div>
 
-          <GenderCheckbox />
+          <GenderCheckbox
+            onCheckboxChange={onFormFieldsChange}
+            selectedGender={formFields?.gender}
+          />
 
-          <a
-            // to={"/login"}
+          <Link
+            to={"/login"}
             className="text-sm hover:underline hover:text-blue-600 mt-2 inline-block"
-            href="#"
           >
             Already have an account?
-          </a>
+          </Link>
 
           <div>
             <button
               className="btn btn-block btn-sm mt-2 border border-slate-700"
-              //   disabled={loading}
+              disabled={loading?.submitLoading}
+              onClick={onSubmitHandler}
             >
-              {/* {loading ? (
+              {loading?.submitLoading ? (
                 <span className="loading loading-spinner"></span>
-              ) : ( */}
-              Sign Up
-              {/* )} */}
+              ) : (
+                "Sign Up"
+              )}
             </button>
           </div>
         </form>
