@@ -6,10 +6,10 @@ import connectToMongoDB from "./db/connectToMongoDB.js";
 import authRoutes from "../backend/routes/auth.routes.js";
 import messageRoutes from "../backend/routes/message.routes.js";
 import userRoutes from "../backend/routes/user.routes.js";
+import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 5500;
 
 // to parse the incoming requests with json payloads (from req.body)
@@ -22,7 +22,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
-app.listen(PORT, () => {
+// using server for handling WebSocket connections
+server.listen(PORT, () => {
   connectToMongoDB(); // mongo DB connection fn
   console.log(`Server running on port: ${PORT}`);
 });
