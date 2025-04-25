@@ -1,5 +1,7 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId } from "../socket/socket.js";
+import { io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -40,6 +42,14 @@ export const sendMessage = async (req, res) => {
     const populatedMessage = await Message.findById(newMessage?._id)
       ?.populate("senderId", "fullName username gender profilePic")
       ?.populate("receiverId", "fullName username gender profilePic");
+
+    // SOCKET IMPLEMENTATION
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    // console.log({ receiverSocketId });
+    if (receiverSocketId) {
+      // io.to is used to emit events to a specific id(user/client)
+      io?.to(receiverSocketId)?.emit("newMessage", populatedMessage);
+    }
 
     res?.status(201)?.json(populatedMessage);
   } catch (error) {
