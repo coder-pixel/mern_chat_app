@@ -39,6 +39,28 @@ io.on("connection", (socket) => {
     // io.emit is used to send events to all the coonnected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
+
+  // WebRTC Signaling Handlers
+  socket.on("callUser", ({ receiverId, offer }) => {
+    console.log({ receiverId, offer });
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    io.to(receiverSocketId).emit("incomingCall", { callerId: userId, offer });
+  });
+
+  socket.on("acceptCall", ({ receiverId, answer }) => {
+    console.log({ receiverId, answer });
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    io.to(receiverSocketId).emit("callAccepted", { callerId: userId, answer });
+  });
+
+  socket.on("iceCandidate", ({ receiverId, candidate }) => {
+    console.log("11111111111111 ", { receiverId, candidate });
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    io.to(receiverSocketId).emit("iceCandidate", {
+      callerId: userId,
+      candidate,
+    });
+  });
 });
 
 export { app, io, server };
