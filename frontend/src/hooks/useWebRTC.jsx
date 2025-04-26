@@ -3,15 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "../context/AuthContext";
 import { useSocketContext } from "../context/SocketContext";
+import useConversation from "../zustand/useConversation";
 
 const useWebRTC = () => {
   const { socket } = useSocketContext();
   const { authUser } = useAuthContext();
+  const { selectedConversation } = useConversation();
 
   // WEBRTC states
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [callAccepted, setCallAccepted] = useState(false);
+  const [callDisconnected, setCallDisconnected] = useState(false);
   const [receivingCall, setReceivingCall] = useState(false);
   const [callerSignal, setCallerSignal] = useState(null);
   const [callerId, setCallerId] = useState(null);
@@ -73,6 +76,27 @@ const useWebRTC = () => {
       };
       // listen for ice candidate event
       socket.on("iceCandidate", handleIceCandidate);
+
+      // this call end event fires for personB when personA disconnects the call
+      socket.on("callEnded", ({ callerId }) => {
+        console.log(`Call ended by ${callerId}`);
+        // Reset relevant state to reflect the call has ended
+        setCallAccepted(false);
+        setReceivingCall(false);
+        setCallerId(null);
+        setCallerSignal(null);
+        // setCallDisconnected(true);
+        if (peerConnection?.current) {
+          peerConnection?.current?.close();
+          peerConnection.current = null;
+        }
+
+        if (localStream) {
+          localStream?.getTracks()?.forEach((track) => track?.stop());
+          setLocalStream(null);
+        }
+        setRemoteStream(null);
+      });
     }
 
     return () => {
@@ -100,7 +124,6 @@ const useWebRTC = () => {
           video: true,
         });
         setLocalStream(stream);
-        console.log(localVideo.current);
         if (localVideo?.current) {
           localVideo.current.srcObject = stream;
         }
@@ -220,6 +243,7 @@ const useWebRTC = () => {
   /**
    *  1. Closes the RTCPeerConnection and stops the local media tracks.
    */
+  // this call end event fires for personA when personA disconnects the call (for himself)
   const hangUp = () => {
     if (peerConnection?.current) {
       peerConnection?.current?.close();
@@ -236,6 +260,11 @@ const useWebRTC = () => {
     setReceivingCall(false);
     setCallerId(null);
     setCallerSignal(null);
+
+    if (socket && selectedConversation?._id) {
+      // Ensure socket and receiverId are available
+      socket.emit("endCall", { receiverId: selectedConversation._id });
+    }
   };
 
   return {

@@ -61,6 +61,16 @@ io.on("connection", (socket) => {
       candidate,
     });
   });
+
+  // for call end event
+  socket.on("endCall", ({ receiverId }) => {
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("callEnded", {
+        callerId: socket.handshake.query.userId,
+      }); //send the callerId
+    }
+  });
 });
 
 export { app, io, server };
