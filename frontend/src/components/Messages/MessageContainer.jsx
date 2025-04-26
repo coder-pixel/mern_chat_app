@@ -80,7 +80,7 @@ const MessageContainer = ({
   // console.log({ localVideoRef, remoteVideoRef, localStream, remoteStream });
 
   return (
-    <div className="md:min-w-[450px] flex flex-col relative">
+    <div className="md:min-w-[450px] w-[90%] flex flex-col relative mx-auto">
       {!selectedConversation ? (
         <NoChatSelected />
       ) : (
@@ -170,7 +170,7 @@ const MessageContainer = ({
           {callAccepted &&
           (currentCallingUser === selectedConversation?._id ||
             callerId === selectedConversation?._id) ? (
-            <div className="absolute top-[60px] left-0 w-full h-[90%] bg-black z-10 flex justify-center items-center">
+            <div className="absolute top-[60px] left-0 w-full h-[500px] sm:h-[90%] bg-black z-10 flex justify-center items-center">
               {remoteStream && (
                 <video
                   ref={remoteVideoRef}

@@ -12,7 +12,7 @@ const Sidebar = ({ callOngoing }) => {
     setFilteredConversations,
   } = useGetConversations();
   return (
-    <div className="border-r border-slate-500 p-4 flex flex-col">
+    <div className="border-r border-slate-500 p-4 flex flex-col lg:min-w-[300px] sm:min-w-[250px]">
       <SearchInput
         conversationsOriginal={conversationsOriginal}
         setFilteredConversations={setFilteredConversations}
