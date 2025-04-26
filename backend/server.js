@@ -26,7 +26,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
-console.log("123455: ", __dirname);
 // static middleware to serve static files
 app.use(express.static(path.join(__dirname, "/frontend/dist")));
 

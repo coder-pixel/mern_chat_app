@@ -10,6 +10,9 @@ export const useSocketContext = () => {
   return useContext(SocketContext);
 };
 
+// const url = "https://video-chat-app-j9sm.onrender.com/"; // for live
+const url = "http://localhost:8000"; // for dev
+
 export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
 
@@ -23,8 +26,7 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (authUser?._id) {
       // console.log("connecting socket...");
-      // const socket = io("http://localhost:8000", {
-      const socket = io("https://video-chat-app-j9sm.onrender.com", {
+      const socket = io(url, {
         query: {
           userId: authUser?._id,
         },
