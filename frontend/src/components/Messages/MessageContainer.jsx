@@ -53,8 +53,8 @@ const MessageContainer = ({
     hangUp(receiverId); // Use hangUp from props
   };
 
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
+  const localVideoRef = useRef({ current: null });
+  const remoteVideoRef = useRef({ current: null });
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -76,10 +76,8 @@ const MessageContainer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Add receivingCall to the props if needed for UI elements still inside MessageContainer
-  // For now, assuming receivingCall logic is fully handled by the popup
-
   // console.log({ callerId, callAccepted, callInitiated });
+  // console.log({ localVideoRef, remoteVideoRef, localStream, remoteStream });
 
   return (
     <div className="md:min-w-[450px] flex flex-col relative">

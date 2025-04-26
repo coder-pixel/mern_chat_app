@@ -21,8 +21,8 @@ const useWebRTC = () => {
   const [callOngoing, setCallOngoing] = useState(true);
   const [currentCallingUser, setCurrentCallingUser] = useState(null); // state to manage whom we (logged in) user has made call to (helpfull to show disconnect call and video streaming options to only that user instead of all)
 
-  const localVideo = useRef({ current: null });
-  const remoteVideo = useRef({ current: null });
+  // const localVideo = useRef({ current: null });
+  // const remoteVideo = useRef({ current: null });
   const peerConnection = useRef(null);
 
   // ICE configuration => ICE (Interactive Connectivity Establishment) Candidates: These are potential network paths that peers can use to connect.
@@ -58,6 +58,7 @@ const useWebRTC = () => {
         setCallAccepted(true);
         setCallInitiated(false);
         setCallOngoing(true); // for friend (on other device)
+
         if (peerConnection?.current) {
           // Check if peerConnection exists
           peerConnection?.current?.setRemoteDescription(
@@ -134,10 +135,12 @@ const useWebRTC = () => {
           audio: true,
           video: true,
         });
+
         setLocalStream(stream);
-        if (localVideo?.current) {
-          localVideo.current.srcObject = stream;
-        }
+        // if (localVideo?.current) {
+        //   console.log("111111111");
+        //   localVideo.current.srcObject = stream;
+        // }
 
         resolve(stream);
 
@@ -181,9 +184,9 @@ const useWebRTC = () => {
       peerConnection.current.ontrack = (event) => {
         if (event?.streams && event?.streams?.[0]) {
           setRemoteStream(event?.streams?.[0]);
-          if (remoteVideo?.current) {
-            remoteVideo.current.srcObject = event?.streams?.[0];
-          }
+          // if (remoteVideo?.current) {
+          //   remoteVideo.current.srcObject = event?.streams?.[0];
+          // }
         }
       };
 
@@ -241,14 +244,10 @@ const useWebRTC = () => {
       peerConnection.current.ontrack = (event) => {
         if (event?.streams && event?.streams?.[0]) {
           setRemoteStream(event?.streams?.[0]);
-          console.log(
-            "ontrack - remoteVideo.current before setting srcObject:",
-            remoteVideo.current
-          );
-          if (remoteVideo?.current) {
-            console.log("1111 ", event);
-            remoteVideo.current.srcObject = event?.streams?.[0];
-          }
+
+          // if (remoteVideo?.current) {
+          //   remoteVideo.current.srcObject = event?.streams?.[0];
+          // }
         }
       };
 
@@ -298,8 +297,8 @@ const useWebRTC = () => {
   return {
     localStream,
     remoteStream,
-    localVideo,
-    remoteVideo,
+    // localVideo,
+    // remoteVideo,
     callAccepted,
     receivingCall,
     callerId,
