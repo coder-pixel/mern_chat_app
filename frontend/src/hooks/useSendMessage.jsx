@@ -15,7 +15,7 @@ export const useSendMessage = () => {
     try {
       if (e) e.preventDefault();
 
-      if (!message) return; // prevent sending empty messages
+      if (!message?.trim()?.length) return; // prevent sending empty messages
 
       setLoading(true);
       const res = await fetch(
@@ -25,7 +25,7 @@ export const useSendMessage = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON?.stringify({ message }),
+          body: JSON?.stringify({ message: message?.trim() }),
         }
       );
       const data = await res?.json();
