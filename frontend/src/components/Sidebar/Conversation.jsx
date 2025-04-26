@@ -1,8 +1,9 @@
 import React from "react";
 import useConversation from "../../zustand/useConversation";
 import { useSocketContext } from "../../context/SocketContext";
+import { errorHandler } from "../../helpers";
 
-const Conversation = ({ conversation, lastIdx }) => {
+const Conversation = ({ conversation, lastIdx, callOngoing }) => {
   const { selectedConversation, setSelectedConversation } = useConversation();
 
   const { onlineUsers } = useSocketContext();
@@ -15,7 +16,15 @@ const Conversation = ({ conversation, lastIdx }) => {
         className={`flex gap-2 items-center hover:bg-sky-500 rounded p-2 py-1 cursor-pointer ${
           isSelected ? "bg-sky-500" : ""
         }`}
-        onClick={() => setSelectedConversation(conversation)}
+        onClick={() => {
+          if (callOngoing) {
+            errorHandler({
+              reason: "Cannot switch conversation while in call",
+            });
+            return;
+          }
+          setSelectedConversation(conversation);
+        }}
       >
         <div className={`avatar ${isOnline ? "avatar-online" : ""}`}>
           <div className="w-12 rounded-full">

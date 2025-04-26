@@ -4,7 +4,7 @@ import Conversations from "./Conversations";
 import { useGetConversations } from "../../hooks/useGetConversations";
 import Footer from "./Footer";
 
-const Sidebar = () => {
+const Sidebar = ({ callOngoing }) => {
   const {
     conversations,
     conversationsOriginal,
@@ -20,7 +20,11 @@ const Sidebar = () => {
 
       <div className="divider px-3" />
 
-      <Conversations conversations={conversations} loading={loading} />
+      <Conversations
+        conversations={conversations}
+        loading={loading}
+        callOngoing={callOngoing}
+      />
 
       <Footer />
     </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import Conversation from "./Conversation";
 
-const Conversations = ({ loading, conversations }) => {
+const Conversations = ({ loading, conversations, callOngoing }) => {
   return (
     <div className="py-2 flex flex-col overflow-auto">
       {conversations?.data?.map((conversation, idx) => (
@@ -9,6 +9,7 @@ const Conversations = ({ loading, conversations }) => {
           key={conversation?._id}
           conversation={conversation}
           lastIdx={idx === conversations?.totalCount - 1}
+          callOngoing={callOngoing}
         />
       ))}
 

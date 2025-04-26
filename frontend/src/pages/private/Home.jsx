@@ -11,16 +11,19 @@ const Home = () => {
     callAccepted,
     receivingCall,
     callerId,
+    currentCallingUser,
+    callInitiated,
+    callOngoing,
     answerCall,
     hangUp,
     callUser,
-    callInitiated,
+    setCurrentCallingUser,
   } = useWebRTC();
 
   // console.log({ callerId, receivingCall, callAccepted });
   return (
     <div className="flex sm:h-[450px] md:h-[550px] rounded-lg overflow-hidden bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0 relative">
-      <Sidebar />
+      <Sidebar callOngoing={callOngoing} />
       <MessageContainer
         localStream={localStream}
         remoteStream={remoteStream}
@@ -31,6 +34,8 @@ const Home = () => {
         callerId={callerId}
         receivingCall={receivingCall}
         callInitiated={callInitiated}
+        currentCallingUser={currentCallingUser}
+        setCurrentCallingUser={setCurrentCallingUser}
       />
 
       {receivingCall && !callAccepted && (

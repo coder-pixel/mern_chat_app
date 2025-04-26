@@ -23,6 +23,8 @@ const MessageContainer = ({
   receivingCall,
   callerId,
   callInitiated, // true while caller has called and another person hasn't responded with acceptance or rejection, in either case it will be false
+  currentCallingUser,
+  setCurrentCallingUser,
 }) => {
   const { selectedConversation, setSelectedConversation } = useConversation();
   const { isOnline } = useSocketContext();
@@ -41,6 +43,7 @@ const MessageContainer = ({
 
   const _handleCall = () => {
     if (selectedConversation?._id) {
+      setCurrentCallingUser(selectedConversation?._id);
       callUser(selectedConversation?._id); // Use callUser from props
     }
   };
@@ -76,6 +79,7 @@ const MessageContainer = ({
   // For now, assuming receivingCall logic is fully handled by the popup
 
   // console.log({ callerId, callAccepted, callInitiated });
+
   return (
     <div className="md:min-w-[450px] flex flex-col relative">
       {!selectedConversation ? (
@@ -107,22 +111,13 @@ const MessageContainer = ({
               </div>
             </div>
 
-            {/* {callerId && callerId === selectedConversation?._id ? ( */}
-            <div className="flex items-center gap-2">
-              {/* Show call button only if NOT already in a call */}
-              {!callAccepted && (
-                <div className="flex items-center gap-2">
-                  {receivingCall ? (
-                    <div className="flex items-center gap-2">
-                      {/* <span className="text-green-400">
-                        {getUserById(callerId)}
-                      </span> */}
-                      <CallButtons
-                        type="receivingCallPulsating"
-                        onClickHandler={answerCall}
-                      />
-                    </div>
-                  ) : callInitiated ? (
+            {currentCallingUser === selectedConversation?._id ||
+            callerId === selectedConversation?._id ? (
+              <div className="flex items-center gap-2">
+                {/* Show call button only if NOT already in a call */}
+                {callAccepted ? (
+                  <>
+                    {/* Show disconnect button only IF in a call */}
                     <div className="flex items-center gap-2">
                       {/* <span className="text-green-400">Call in progress</span> */}
                       <CallButtons
@@ -130,37 +125,52 @@ const MessageContainer = ({
                         onClickHandler={() =>
                           handleDisconnectCall(selectedConversation?._id)
                         }
+                        callAccepted={callAccepted}
                       />
                     </div>
-                  ) : (
-                    <CallButtons
-                      type="call"
-                      onClickHandler={_handleCall}
-                      callAccepted={callAccepted}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* Show disconnect button only IF in a call */}
-              {callAccepted && (
-                <div className="flex items-center gap-2">
-                  {/* <span className="text-green-400">Call in progress</span> */}
-                  <CallButtons
-                    type="disconnectCall"
-                    onClickHandler={() =>
-                      handleDisconnectCall(selectedConversation?._id)
-                    }
-                    callAccepted={callAccepted}
-                  />
-                </div>
-              )}
-            </div>
-            {/* ) : null} */}
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {receivingCall ? (
+                      <div className="flex items-center gap-2">
+                        <CallButtons
+                          type="receivingCallPulsating"
+                          onClickHandler={answerCall}
+                        />
+                      </div>
+                    ) : callInitiated ? (
+                      <div className="flex items-center gap-2">
+                        {/* <span className="text-green-400">Call in progress</span> */}
+                        <CallButtons
+                          type="disconnectCall"
+                          onClickHandler={() =>
+                            handleDisconnectCall(selectedConversation?._id)
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <CallButtons
+                        type="call"
+                        onClickHandler={_handleCall}
+                        callAccepted={callAccepted}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <CallButtons
+                type="call"
+                onClickHandler={_handleCall}
+                callAccepted={callAccepted}
+              />
+            )}
           </div>
 
           {/* Video Call Display - Uses callAccepted from props */}
-          {callAccepted && (
+          {callAccepted &&
+          (currentCallingUser === selectedConversation?._id ||
+            callerId === selectedConversation?._id) ? (
             <div className="absolute top-[60px] left-0 w-full h-[90%] bg-black z-10 flex justify-center items-center">
               {remoteStream && (
                 <video
@@ -180,7 +190,7 @@ const MessageContainer = ({
                 </div>
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Messages/Input Area - Render only if NOT in a call */}
           {!callAccepted && (

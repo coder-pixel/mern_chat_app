@@ -18,6 +18,8 @@ const useWebRTC = () => {
   const [callInitiated, setCallInitiated] = useState(false);
   const [callerSignal, setCallerSignal] = useState(null);
   const [callerId, setCallerId] = useState(null);
+  const [callOngoing, setCallOngoing] = useState(true);
+  const [currentCallingUser, setCurrentCallingUser] = useState(null); // state to manage whom we (logged in) user has made call to (helpfull to show disconnect call and video streaming options to only that user instead of all)
 
   const localVideo = useRef({ current: null });
   const remoteVideo = useRef({ current: null });
@@ -55,6 +57,7 @@ const useWebRTC = () => {
       socket.on("callAccepted", ({ callerId, answer }) => {
         setCallAccepted(true);
         setCallInitiated(false);
+        setCallOngoing(true); // for friend (on other device)
         if (peerConnection?.current) {
           // Check if peerConnection exists
           peerConnection?.current?.setRemoteDescription(
@@ -87,6 +90,7 @@ const useWebRTC = () => {
         setCallerId(null);
         setCallerSignal(null);
         setCallInitiated(false); // just to be sure
+        setCallOngoing(false); // for friend (on other device)
         // setCallDisconnected(true);
         if (peerConnection?.current) {
           peerConnection?.current?.close();
@@ -103,6 +107,8 @@ const useWebRTC = () => {
 
     return () => {
       if (socket) {
+        hangUp(); // need to implement the scenario when other user disconnects abrubtly (i.e not from the ui), so in that case need to emit an event for other user to let it know
+
         socket.off("incomingCall");
         socket.off("callAccepted");
         socket.off("iceCandidate");
@@ -113,6 +119,8 @@ const useWebRTC = () => {
       if (peerConnection?.current) {
         peerConnection?.current?.close();
       }
+
+      setCallOngoing(false); // for friend (on other device)
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, authUser]);
@@ -205,6 +213,7 @@ const useWebRTC = () => {
   const answerCall = async () => {
     try {
       setCallAccepted(true);
+      setCallOngoing(true); // for use (on our device)
       const lStream = await getLocalMediaStream(); // Ensure stream is obtained
 
       if (!lStream) {
@@ -278,6 +287,7 @@ const useWebRTC = () => {
     setCallerId(null);
     setCallerSignal(null);
     setCallInitiated(false); // setting to false, just to be sure -- not needed though here, I guess
+    setCallOngoing(false); // for use (on our device)
 
     if (socket) {
       // Ensure socket and receiverId are available
@@ -294,9 +304,12 @@ const useWebRTC = () => {
     receivingCall,
     callerId,
     callInitiated,
+    currentCallingUser,
+    callOngoing,
     callUser,
     answerCall,
     hangUp,
+    setCurrentCallingUser,
   };
 };
 
