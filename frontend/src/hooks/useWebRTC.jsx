@@ -18,7 +18,7 @@ const useWebRTC = () => {
   const [callInitiated, setCallInitiated] = useState(false);
   const [callerSignal, setCallerSignal] = useState(null);
   const [callerId, setCallerId] = useState(null);
-  const [callOngoing, setCallOngoing] = useState(true);
+  const [callOngoing, setCallOngoing] = useState(false);
   const [currentCallingUser, setCurrentCallingUser] = useState(null); // state to manage whom we (logged in) user has made call to (helpfull to show disconnect call and video streaming options to only that user instead of all)
 
   // const localVideo = useRef({ current: null });
