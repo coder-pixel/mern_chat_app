@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { BsFillTelephoneFill, BsFillTelephoneXFill } from "react-icons/bs";
 import useConversation from "../../zustand/useConversation";
 import { useGetConversations } from "../../hooks/useGetConversations"; // Assuming you have this hook to get conversation details
+import CallButtons from "../CallButtons";
 
 const IncomingCallPopup = ({ callerId, answerCall, hangUp }) => {
   const { setSelectedConversation } = useConversation();
@@ -48,20 +48,13 @@ const IncomingCallPopup = ({ callerId, answerCall, hangUp }) => {
         </p> */}
       </div>
       <div className="flex gap-2 ml-auto">
-        <button
-          onClick={handleAccept}
-          className="p-2 cursor-pointer rounded-full bg-green-500 hover:bg-green-600 transition-colors duration-200"
-          title="Accept Call"
-        >
-          <BsFillTelephoneFill className="text-white text-xl" />
-        </button>
-        <button
-          onClick={() => handleReject(callerInfo?._id)}
-          className="p-2 cursor-pointer rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
+        <CallButtons type="receivingCall" onClickHandler={handleAccept} />
+
+        <CallButtons
+          type="disconnectCall"
+          onClickHandler={() => handleReject(callerInfo?._id)}
           title="Reject Call"
-        >
-          <BsFillTelephoneXFill className="text-white text-xl" />
-        </button>
+        />
       </div>
     </div>
   );

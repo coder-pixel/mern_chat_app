@@ -11,6 +11,7 @@ import MessageInput from "./MessageInput";
 import useConversation from "../../zustand/useConversation";
 // import useWebRTC from "../../hooks/useWebRTC"; // Remove hook import
 import { useSocketContext } from "../../context/SocketContext";
+import CallButtons from "../CallButtons";
 
 const MessageContainer = ({
   localStream,
@@ -18,7 +19,9 @@ const MessageContainer = ({
   callAccepted,
   hangUp, // Receive hangUp from props
   callUser, // Receive callUser from props
+  answerCall,
   receivingCall,
+  callerId,
   callInitiated, // true while caller has called and another person hasn't responded with acceptance or rejection, in either case it will be false
 }) => {
   const { selectedConversation, setSelectedConversation } = useConversation();
@@ -104,6 +107,7 @@ const MessageContainer = ({
               </div>
             </div>
 
+            {/* {callerId && callerId === selectedConversation?._id ? ( */}
             <div className="flex items-center gap-2">
               {/* Show call button only if NOT already in a call */}
               {!callAccepted && (
@@ -113,30 +117,27 @@ const MessageContainer = ({
                       {/* <span className="text-green-400">
                         {getUserById(callerId)}
                       </span> */}
-                      <BsFillTelephoneFill className="text-green-400 text-xl animate-pulse" />
+                      <CallButtons
+                        type="receivingCallPulsating"
+                        onClickHandler={answerCall}
+                      />
                     </div>
                   ) : callInitiated ? (
                     <div className="flex items-center gap-2">
                       {/* <span className="text-green-400">Call in progress</span> */}
-                      <button
-                        onClick={() =>
+                      <CallButtons
+                        type="disconnectCall"
+                        onClickHandler={() =>
                           handleDisconnectCall(selectedConversation?._id)
                         }
-                        className="p-2 cursor-pointer rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
-                        title="End Call"
-                      >
-                        <BsFillTelephoneXFill className="text-white text-xl" />
-                      </button>
+                      />
                     </div>
                   ) : (
-                    <button
-                      onClick={_handleCall}
-                      disabled={callAccepted}
-                      className="p-2 cursor-pointer rounded-full hover:bg-slate-600 transition-colors duration-200"
-                      title="Start Video Call"
-                    >
-                      <BsFillCameraVideoFill className="text-white text-xl" />
-                    </button>
+                    <CallButtons
+                      type="call"
+                      onClickHandler={_handleCall}
+                      callAccepted={callAccepted}
+                    />
                   )}
                 </div>
               )}
@@ -145,18 +146,17 @@ const MessageContainer = ({
               {callAccepted && (
                 <div className="flex items-center gap-2">
                   {/* <span className="text-green-400">Call in progress</span> */}
-                  <button
-                    onClick={() =>
+                  <CallButtons
+                    type="disconnectCall"
+                    onClickHandler={() =>
                       handleDisconnectCall(selectedConversation?._id)
                     }
-                    className="p-2 cursor-pointer rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
-                    title="End Call"
-                  >
-                    <BsFillTelephoneXFill className="text-white text-xl" />
-                  </button>
+                    callAccepted={callAccepted}
+                  />
                 </div>
               )}
             </div>
+            {/* ) : null} */}
           </div>
 
           {/* Video Call Display - Uses callAccepted from props */}

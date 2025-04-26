@@ -27,6 +27,7 @@ const Home = () => {
         callAccepted={callAccepted}
         hangUp={hangUp}
         callUser={callUser}
+        answerCall={answerCall}
         callerId={callerId}
         receivingCall={receivingCall}
         callInitiated={callInitiated}
