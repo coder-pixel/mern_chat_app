@@ -22,7 +22,7 @@ const Home = () => {
 
   // console.log({ callerId, receivingCall, callAccepted });
   return (
-    <div className="flex flex-col sm:flex-row w-full  sm:w-[600px] md:w-[900px] h-[100vh] sm:h-[450px] md:h-[550px] rounded-none sm:rounded-lg overflow-hidden bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0 relative">
+    <div className="flex flex-col sm:flex-row w-full  sm:w-[600px] md:w-[900px] h-[100vh] sm:h-[450px] md:h-[550px] rounded-none sm:rounded-lg overflow-scroll bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0 relative">
       <Sidebar callOngoing={callOngoing} />
       <MessageContainer
         localStream={localStream}
