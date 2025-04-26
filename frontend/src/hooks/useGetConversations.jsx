@@ -39,7 +39,6 @@ export const useGetConversations = () => {
   };
 
   const _getUserById = (id) => {
-    console.log({ conversations });
     return (
       conversations?.data?.find((each) => each?._id === id)?.fullName || ""
     );
