@@ -11,11 +11,11 @@ const useWebRTC = () => {
   const { selectedConversation } = useConversation();
 
   // WEBRTC states
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
+  const [localStream, setLocalStream] = useState(null); // video streams from webcam of my device
+  const [remoteStream, setRemoteStream] = useState(null); // video streams from webcam of my friends device
   const [callAccepted, setCallAccepted] = useState(false);
-  const [callDisconnected, setCallDisconnected] = useState(false);
   const [receivingCall, setReceivingCall] = useState(false);
+  const [callInitiated, setCallInitiated] = useState(false);
   const [callerSignal, setCallerSignal] = useState(null);
   const [callerId, setCallerId] = useState(null);
 
@@ -54,6 +54,7 @@ const useWebRTC = () => {
       // listen if call is accepted
       socket.on("callAccepted", ({ callerId, answer }) => {
         setCallAccepted(true);
+        setCallInitiated(false);
         if (peerConnection?.current) {
           // Check if peerConnection exists
           peerConnection?.current?.setRemoteDescription(
@@ -79,12 +80,13 @@ const useWebRTC = () => {
 
       // this call end event fires for personB when personA disconnects the call
       socket.on("callEnded", ({ callerId }) => {
-        console.log(`Call ended by ${callerId}`);
+        console.log(`Call ended by your friend: ${callerId}`);
         // Reset relevant state to reflect the call has ended
         setCallAccepted(false);
         setReceivingCall(false);
         setCallerId(null);
         setCallerSignal(null);
+        setCallInitiated(false); // just to be sure
         // setCallDisconnected(true);
         if (peerConnection?.current) {
           peerConnection?.current?.close();
@@ -119,6 +121,7 @@ const useWebRTC = () => {
   const getLocalMediaStream = async () => {
     return new Promise(async (resolve) => {
       try {
+        // navigator?.mediaDevices?.getUserMedia -> prompts the user to accept sharing audio/video - permission access
         const stream = await navigator?.mediaDevices?.getUserMedia({
           audio: true,
           video: true,
@@ -129,6 +132,8 @@ const useWebRTC = () => {
         }
 
         resolve(stream);
+
+        peerConnection.current = new RTCPeerConnection(configuration); // Initialize here
       } catch (error) {
         console.error("Error accessing media devices:", error);
         resolve(null);
@@ -147,38 +152,44 @@ const useWebRTC = () => {
    * 8. Emits the callUser event to the server with the receiver's ID and the offer.
    */
   const callUser = async (receiverId) => {
-    const lStream = await getLocalMediaStream();
-    peerConnection.current = new RTCPeerConnection(configuration); // Initialize here
+    try {
+      setCallInitiated(true);
+      const lStream = await getLocalMediaStream();
+      // peerConnection.current = new RTCPeerConnection(configuration); // Initialize here
 
-    lStream?.getTracks()?.forEach((track) => {
-      peerConnection?.current?.addTrack(track, lStream);
-    });
+      lStream?.getTracks()?.forEach((track) => {
+        peerConnection?.current?.addTrack(track, lStream);
+      });
 
-    peerConnection.current.onicecandidate = (event) => {
-      if (event?.candidate) {
-        socket.emit("iceCandidate", {
-          receiverId,
-          candidate: event?.candidate,
-        });
-      }
-    };
-
-    peerConnection.current.ontrack = (event) => {
-      if (event?.streams && event?.streams?.[0]) {
-        setRemoteStream(event?.streams?.[0]);
-        if (remoteVideo?.current) {
-          remoteVideo.current.srcObject = event?.streams?.[0];
+      peerConnection.current.onicecandidate = (event) => {
+        if (event?.candidate) {
+          socket.emit("iceCandidate", {
+            receiverId,
+            candidate: event?.candidate,
+          });
         }
-      }
-    };
+      };
 
-    const offer = await peerConnection?.current?.createOffer();
-    await peerConnection?.current?.setLocalDescription(offer);
+      peerConnection.current.ontrack = (event) => {
+        if (event?.streams && event?.streams?.[0]) {
+          setRemoteStream(event?.streams?.[0]);
+          if (remoteVideo?.current) {
+            remoteVideo.current.srcObject = event?.streams?.[0];
+          }
+        }
+      };
 
-    socket.emit("callUser", {
-      receiverId,
-      offer,
-    });
+      const offer = await peerConnection?.current?.createOffer();
+      await peerConnection?.current?.setLocalDescription(offer);
+
+      socket.emit("callUser", {
+        receiverId,
+        offer,
+      });
+    } catch (err) {
+      console.log("Error while connecting call: ", err);
+      setCallInitiated(false);
+    }
   };
 
   /**
@@ -192,59 +203,65 @@ const useWebRTC = () => {
    * 8. Emits the acceptCall event to the server with the caller's ID and the answer.
    */
   const answerCall = async () => {
-    setCallAccepted(true);
-    const lStream = await getLocalMediaStream(); // Ensure stream is obtained
+    try {
+      setCallAccepted(true);
+      const lStream = await getLocalMediaStream(); // Ensure stream is obtained
 
-    if (!lStream) {
-      console.error("Local stream not available when answering call.");
-      // Handle the error appropriately (e.g., show a message to the user)
-      return;
-    }
-
-    peerConnection.current = new RTCPeerConnection(configuration); // Initialize here
-
-    lStream?.getTracks()?.forEach((track) => {
-      console.log({ track });
-      peerConnection?.current?.addTrack(track, lStream);
-    });
-
-    peerConnection.current.onicecandidate = (event) => {
-      if (event?.candidate) {
-        socket.emit("iceCandidate", {
-          receiverId: callerId,
-          candidate: event?.candidate,
-        });
+      if (!lStream) {
+        console.error("Local stream not available when answering call.");
+        // Handle the error appropriately (e.g., show a message to the user)
+        return;
       }
-    };
 
-    peerConnection.current.ontrack = (event) => {
-      if (event?.streams && event?.streams?.[0]) {
-        setRemoteStream(event?.streams?.[0]);
-        console.log(
-          "ontrack - remoteVideo.current before setting srcObject:",
-          remoteVideo.current
-        );
-        if (remoteVideo?.current) {
-          console.log("1111 ", event);
-          remoteVideo.current.srcObject = event?.streams?.[0];
+      // peerConnection.current = new RTCPeerConnection(configuration); // Initialize here
+
+      lStream?.getTracks()?.forEach((track) => {
+        console.log({ track });
+        peerConnection?.current?.addTrack(track, lStream);
+      });
+
+      peerConnection.current.onicecandidate = (event) => {
+        if (event?.candidate) {
+          socket.emit("iceCandidate", {
+            receiverId: callerId,
+            candidate: event?.candidate,
+          });
         }
-      }
-    };
+      };
 
-    await peerConnection?.current?.setRemoteDescription(
-      new RTCSessionDescription(callerSignal)
-    );
-    const answer = await peerConnection?.current?.createAnswer();
-    await peerConnection?.current?.setLocalDescription(answer);
+      peerConnection.current.ontrack = (event) => {
+        if (event?.streams && event?.streams?.[0]) {
+          setRemoteStream(event?.streams?.[0]);
+          console.log(
+            "ontrack - remoteVideo.current before setting srcObject:",
+            remoteVideo.current
+          );
+          if (remoteVideo?.current) {
+            console.log("1111 ", event);
+            remoteVideo.current.srcObject = event?.streams?.[0];
+          }
+        }
+      };
 
-    socket.emit("acceptCall", { receiverId: callerId, answer });
+      await peerConnection?.current?.setRemoteDescription(
+        new RTCSessionDescription(callerSignal)
+      );
+      const answer = await peerConnection?.current?.createAnswer();
+      await peerConnection?.current?.setLocalDescription(answer);
+
+      socket.emit("acceptCall", { receiverId: callerId, answer });
+    } catch (err) {
+      console.log("Error while receiving call: ", err);
+    } finally {
+      setCallInitiated(false); // on receiving willfalse this state, as it's only to shaow the caller the call end btn (while call is in progress of accepting / rejecting)
+    }
   };
 
   /**
    *  1. Closes the RTCPeerConnection and stops the local media tracks.
    */
   // this call end event fires for personA when personA disconnects the call (for himself)
-  const hangUp = () => {
+  const hangUp = (receiverId) => {
     if (peerConnection?.current) {
       peerConnection?.current?.close();
       peerConnection.current = null; // Reset peerConnection
@@ -260,10 +277,11 @@ const useWebRTC = () => {
     setReceivingCall(false);
     setCallerId(null);
     setCallerSignal(null);
+    setCallInitiated(false); // setting to false, just to be sure -- not needed though here, I guess
 
-    if (socket && selectedConversation?._id) {
+    if (socket) {
       // Ensure socket and receiverId are available
-      socket.emit("endCall", { receiverId: selectedConversation._id });
+      socket.emit("endCall", { receiverId });
     }
   };
 
@@ -275,6 +293,7 @@ const useWebRTC = () => {
     callAccepted,
     receivingCall,
     callerId,
+    callInitiated,
     callUser,
     answerCall,
     hangUp,

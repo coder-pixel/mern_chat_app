@@ -1,42 +1,53 @@
 import React, { useEffect, useRef } from "react";
 import { TiMessages } from "react-icons/ti";
-import { BsFillCameraVideoFill, BsFillTelephoneXFill } from "react-icons/bs"; // Import disconnect icon
+import {
+  BsFillCameraVideoFill,
+  BsFillTelephoneFill,
+  BsFillTelephoneXFill,
+} from "react-icons/bs"; // Import disconnect icon
 
 import Messages from "./Messages";
 import MessageInput from "./MessageInput";
 import useConversation from "../../zustand/useConversation";
-import useWebRTC from "../../hooks/useWebRTC";
+// import useWebRTC from "../../hooks/useWebRTC"; // Remove hook import
+import { useSocketContext } from "../../context/SocketContext";
 
-const MessageContainer = () => {
+const MessageContainer = ({
+  localStream,
+  remoteStream,
+  callAccepted,
+  hangUp, // Receive hangUp from props
+  callUser, // Receive callUser from props
+  receivingCall,
+  callInitiated, // true while caller has called and another person hasn't responded with acceptance or rejection, in either case it will be false
+}) => {
   const { selectedConversation, setSelectedConversation } = useConversation();
+  const { isOnline } = useSocketContext();
 
-  const {
-    localStream,
-    remoteStream,
-    callAccepted,
-    receivingCall,
-    callerId,
-    callUser,
-    answerCall,
-    hangUp,
-  } = useWebRTC();
-
-  // const [isFullScreen, setIsFullScreen] = useState(false);
+  // Remove local state/hook call for WebRTC - now used in home.jsx for global use (using here and incomingCallPopup.jsx)
+  // const {
+  //   localStream,
+  //   remoteStream,
+  //   callAccepted,
+  //   receivingCall,
+  //   callerId,
+  //   callUser,
+  //    answerCall,
+  //   hangUp,
+  // } = useWebRTC();
 
   const _handleCall = () => {
     if (selectedConversation?._id) {
-      callUser(selectedConversation?._id);
-      // setIsFullScreen(true); // Go full screen on call initiation
+      callUser(selectedConversation?._id); // Use callUser from props
     }
   };
 
-  const handleDisconnectCall = () => {
-    hangUp();
-    // setIsFullScreen(false); // Exit full screen on disconnect
+  const handleDisconnectCall = (receiverId) => {
+    hangUp(receiverId); // Use hangUp from props
   };
 
-  const localVideoRef = useRef(null); // Separate ref for local video
-  const remoteVideoRef = useRef(null); // Separate ref for remote video
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -52,13 +63,16 @@ const MessageContainer = () => {
 
   useEffect(() => {
     return () => {
-      // cleanup fn (unmounts)
       setSelectedConversation(null);
-      handleDisconnectCall(); // Ensure the call is hung up when leaving the chat
+      handleDisconnectCall(selectedConversation?._id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Add receivingCall to the props if needed for UI elements still inside MessageContainer
+  // For now, assuming receivingCall logic is fully handled by the popup
+
+  // console.log({ callerId, callAccepted, callInitiated });
   return (
     <div className="md:min-w-[450px] flex flex-col relative">
       {!selectedConversation ? (
@@ -66,32 +80,87 @@ const MessageContainer = () => {
       ) : (
         <>
           {/* Header */}
-          <div className="h-[60px] bg-slate-500 px-4 py-2 mb-2 flex justify-between items-center">
-            <div>
-              <span className="label-text">To: </span>
-              <span className="text-gray-900 font-bold">
-                {selectedConversation?.fullName || "N/A"}
-              </span>
+          <div className="h-[60px] bg-slate-700 px-4 py-2 mb-2 flex justify-between items-center rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={
+                    selectedConversation?.profilePic || "/default-profile.png"
+                  }
+                  alt={selectedConversation?.fullName}
+                  className="w-10 h-10 rounded-full border-2 border-slate-500"
+                />
+                {isOnline(selectedConversation?._id) && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-700"></div>
+                )}
+              </div>
+              <div>
+                <span className="text-white font-semibold">
+                  {selectedConversation?.fullName || "N/A"}
+                </span>
+                <p className="text-xs text-slate-300">
+                  {isOnline(selectedConversation?._id) ? "Online" : ""}
+                </p>
+              </div>
             </div>
-            <div>
-              {!callAccepted && !receivingCall && (
-                <button
-                  onClick={_handleCall}
-                  disabled={callAccepted || receivingCall}
-                >
-                  <BsFillCameraVideoFill className="text-white text-xl cursor-pointer mr-2" />
-                </button>
+
+            <div className="flex items-center gap-2">
+              {/* Show call button only if NOT already in a call */}
+              {!callAccepted && (
+                <div className="flex items-center gap-2">
+                  {receivingCall ? (
+                    <div className="flex items-center gap-2">
+                      {/* <span className="text-green-400">
+                        {getUserById(callerId)}
+                      </span> */}
+                      <BsFillTelephoneFill className="text-green-400 text-xl animate-pulse" />
+                    </div>
+                  ) : callInitiated ? (
+                    <div className="flex items-center gap-2">
+                      {/* <span className="text-green-400">Call in progress</span> */}
+                      <button
+                        onClick={() =>
+                          handleDisconnectCall(selectedConversation?._id)
+                        }
+                        className="p-2 cursor-pointer rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
+                        title="End Call"
+                      >
+                        <BsFillTelephoneXFill className="text-white text-xl" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={_handleCall}
+                      disabled={callAccepted}
+                      className="p-2 cursor-pointer rounded-full hover:bg-slate-600 transition-colors duration-200"
+                      title="Start Video Call"
+                    >
+                      <BsFillCameraVideoFill className="text-white text-xl" />
+                    </button>
+                  )}
+                </div>
               )}
+
+              {/* Show disconnect button only IF in a call */}
               {callAccepted && (
-                <button onClick={handleDisconnectCall}>
-                  <BsFillTelephoneXFill className="text-red-500 text-xl cursor-pointer" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* <span className="text-green-400">Call in progress</span> */}
+                  <button
+                    onClick={() =>
+                      handleDisconnectCall(selectedConversation?._id)
+                    }
+                    className="p-2 cursor-pointer rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
+                    title="End Call"
+                  >
+                    <BsFillTelephoneXFill className="text-white text-xl" />
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Video Call Display */}
-          {(callAccepted || receivingCall) && (
+          {/* Video Call Display - Uses callAccepted from props */}
+          {callAccepted && (
             <div className="absolute top-[60px] left-0 w-full h-[90%] bg-black z-10 flex justify-center items-center">
               {remoteStream && (
                 <video
@@ -110,32 +179,11 @@ const MessageContainer = () => {
                   />
                 </div>
               )}
-
-              {receivingCall && !callAccepted && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-md shadow-lg z-30">
-                  <p className="text-lg font-semibold mb-2">
-                    {callerId} is calling you!
-                  </p>
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={answerCall}
-                      className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                    >
-                      Answer
-                    </button>
-                    <button
-                      onClick={handleDisconnectCall}
-                      className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {!callAccepted && !receivingCall && (
+          {/* Messages/Input Area - Render only if NOT in a call */}
+          {!callAccepted && (
             <>
               <Messages />
               <MessageInput />

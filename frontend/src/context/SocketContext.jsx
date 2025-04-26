@@ -16,6 +16,10 @@ export const SocketContextProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
+  const isOnline = (id) => {
+    return onlineUsers?.findIndex((each) => each === id) > -1 ? true : false;
+  };
+
   useEffect(() => {
     if (authUser?._id) {
       // console.log("connecting socket...");
@@ -43,7 +47,7 @@ export const SocketContextProvider = ({ children }) => {
   }, [authUser]);
 
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers }}>
+    <SocketContext.Provider value={{ socket, onlineUsers, isOnline }}>
       {children}
     </SocketContext.Provider>
   );

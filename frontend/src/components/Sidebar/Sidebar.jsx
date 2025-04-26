@@ -1,8 +1,8 @@
 import React from "react";
 import SearchInput from "./SearchInput";
 import Conversations from "./Conversations";
-import LogoutButton from "./LogoutButton";
 import { useGetConversations } from "../../hooks/useGetConversations";
+import Footer from "./Footer";
 
 const Sidebar = () => {
   const {
@@ -22,7 +22,7 @@ const Sidebar = () => {
 
       <Conversations conversations={conversations} loading={loading} />
 
-      <LogoutButton />
+      <Footer />
     </div>
   );
 };
