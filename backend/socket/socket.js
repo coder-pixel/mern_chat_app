@@ -8,8 +8,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    // origin: "https://video-chat-app-j9sm.onrender.com/", // for live
-    origin: "http://localhost:5173", // for dev
+    origin: "https://video-chat-app-j9sm.onrender.com/", // for live
+    // origin: "http://localhost:5173", // for dev
     methods: ["GET", "POST"],
   },
 });

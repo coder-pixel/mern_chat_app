@@ -10,8 +10,8 @@ export const useSocketContext = () => {
   return useContext(SocketContext);
 };
 
-// const url = "https://video-chat-app-j9sm.onrender.com/"; // for live
-const url = "http://localhost:8000"; // for dev
+const url = "https://video-chat-app-j9sm.onrender.com/"; // for live
+// const url = "http://localhost:8000"; // for dev
 
 export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
